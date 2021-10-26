@@ -16,7 +16,7 @@ interface CommissionInterface
      *
      * @return array
      */
-    public function getBusWithdrawCommission():array;
+    public function getBusinessWithdrawCommission():array;
     
     /**
      * getPrivateWithdrawCommission

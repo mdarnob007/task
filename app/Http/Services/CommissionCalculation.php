@@ -27,7 +27,7 @@ class CommissionCalculation implements CommissionInterface
         $this->baseCurrencyCode = config('commissionSetup.currency_default_code');
         $this->depositCommissionRate = config('commissionSetup.deposit_commission_rate');
         $this->privateWithdrawFreeWeeklyAmount = config('commissionSetup.private_withdrawal_free_weekly_amount');
-        $this->privateWithdrawFreeWeeklyTranLimit = config('commissionSetup.private_withdrawal_free_weekly_amount');
+        $this->privateWithdrawFreeWeeklyTranLimit = config('commissionSetup.private_withdrawal_max_weekly_discounts_number');
         $this->withdrawalPrivateFeeRate = config('commissionSetup.withdrawal_private_fee_rate');
         $this->withdrawalBusinessFeeRate = config('commissionSetup.withdrawal_business_fee_rate');
     }
@@ -43,7 +43,7 @@ class CommissionCalculation implements CommissionInterface
         return $this->makeResponse(true, $commission);
     }
 
-    public function getBusWithdrawCommission(): array
+    public function getBusinessWithdrawCommission(): array
     {
         if ($this->transaction->transactionAmount < 0) {
             return $this->makeResponse(true, $this->transaction->transactionAmount);
@@ -80,7 +80,6 @@ class CommissionCalculation implements CommissionInterface
     {
         $numberOfTransactionOnAWeek = 1;
         $totalTransactionAmount = ($this->baseCurrencyCode == $this->transaction->currencyCode) ? $this->transaction->transactionAmount : $this->transaction->eurAmount;
-
         foreach ($this->transactionHistory as $history) {
             if ($history->userId === $this->transaction->userId && $history->userType === 'private' && $history->operationType === 'withdraw' && $this->transaction->transactionDate->format('oW') === $history->transactionDate->format('oW')) {
                 $numberOfTransactionOnAWeek++;
@@ -91,7 +90,6 @@ class CommissionCalculation implements CommissionInterface
                 }
             }
         }
-
         if ($this->privateWithdrawFreeWeeklyTranLimit < $numberOfTransactionOnAWeek) {
             return $this->transaction->transactionAmount;
         } else {
